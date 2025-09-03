@@ -28,20 +28,20 @@ export default function AdminOverviewPage() {
 
     const fetchDashboardStats = async () => {
         try {
-            // Fetch students count
-            const studentsResponse = await authenticatedFetch('/api/students?limit=1');
-            const studentsData = await studentsResponse.ok ? await studentsResponse.json() : { pagination: { total: 0 } };
-
-            // For now, we'll set placeholder values for other stats
-            // These can be implemented when the respective APIs are created
-            setStats({
-                totalStudents: studentsData.pagination?.total || 0,
-                totalTeachers: 0, // TODO: Implement when teachers API is ready
-                totalClasses: 0,  // TODO: Implement when classes API is ready
-                totalSections: 0  // TODO: Implement when sections API is ready
-            });
+            const res = await authenticatedFetch(`/api/admin/overview?school_id=${encodeURIComponent('f27cf87b-d3fb-41c1-8f23-0558c222768d')}`);
+            const data = await res.json();
+            if (res.ok) {
+                setStats({
+                    totalStudents: data?.students ?? 0,
+                    totalTeachers: data?.teachers ?? 0,
+                    totalClasses: data?.classes ?? 0,
+                    totalSections: data?.sections ?? 0,
+                });
+            } else {
+                setStats({ totalStudents: 0, totalTeachers: 0, totalClasses: 0, totalSections: 0 });
+            }
         } catch (error) {
-            console.error('Error fetching dashboard stats:', error);
+            setStats({ totalStudents: 0, totalTeachers: 0, totalClasses: 0, totalSections: 0 });
         } finally {
             setLoading(false);
         }

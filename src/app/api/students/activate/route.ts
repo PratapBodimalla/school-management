@@ -18,12 +18,11 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Mark student as active and set enrollment_date if not already set
+        // Mark student as active
         const { data, error } = await supabaseAdmin
             .from('students')
             .update({
-                status: 'active',
-                enrollment_date: new Date().toISOString()
+                status: 'active'
             })
             .eq('email', user.email)
             .eq('school_id', FIXED_SCHOOL_ID)
