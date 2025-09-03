@@ -14,7 +14,7 @@ export default function TeacherStudentsPage() {
     const [q, setQ] = useState("");
     const [rows, setRows] = useState<StudentRow[]>([]);
     const [classes, setClasses] = useState<{ id: string; name: string }[]>([]);
-    const [sections, setSections] = useState<{ id: string; name: string }[]>([]);
+    const [sections, setSections] = useState<{ id: string; name: string; class_id: string }[]>([]);
     const [loading, setLoading] = useState(false);
     const ALL = "__all__";
     const [classId, setClassId] = useState(ALL);
