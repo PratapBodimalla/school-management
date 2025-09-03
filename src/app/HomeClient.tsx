@@ -204,7 +204,7 @@ export default function HomeClient() {
             </section>
             <section className="flex items-center justify-center p-8">
                 <div className="w-full max-w-md">
-                    {mode !== 'set-password' && (
+                    {/* {mode !== 'set-password' && (
                         <div className="mb-6 flex rounded-full border border-black/10 dark:border-white/10">
                             <button
                                 className={`w-1/2 py-2 text-sm rounded-l-full ${mode === "signin" ? "bg-black text-white dark:bg-white dark:text-black" : ""}`}
@@ -219,7 +219,7 @@ export default function HomeClient() {
                                 Sign Up
                             </button>
                         </div>
-                    )}
+                    )} */}
                     <form onSubmit={handleSubmit} className="space-y-4">
                         {mode !== 'set-password' && (
                             <div>
@@ -283,7 +283,7 @@ export default function HomeClient() {
                                     ? "Create account"
                                     : mode === 'set-password'
                                         ? "Set password"
-                                        : "Sign in"}
+                                        : "Login"}
                         </button>
                         {message && (
                             <div className="text-sm text-center space-y-2">
