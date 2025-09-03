@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { User, Settings, HelpCircle, LogOut, PanelLeftClose, PanelLeftOpen, LayoutDashboard, GraduationCap, Users, BookOpen, Calendar, Clock, Sun, Moon } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-    const { loading, isAuthorized } = useRoleGuard("admin");
+    const { loading, isAuthorized } = useRoleGuard("Admin");
     const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
