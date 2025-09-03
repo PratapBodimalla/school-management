@@ -86,12 +86,23 @@ export default function Home() {
   useEffect(() => {
     const sub = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        // Best effort: mark student active and set enrollment date
         try {
-          await fetch('/api/students/activate', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${session.access_token}` }
-          });
+          let role: string | null = (session.user?.user_metadata?.role as string | undefined) ?? null;
+          if (!role) {
+            const { data: profile } = await supabase
+              .from('users_profile')
+              .select('role')
+              .eq('id', session.user?.id)
+              .maybeSingle();
+            role = (profile?.role as string | undefined) ?? null;
+          }
+          const endpoint = role === 'Teacher' ? '/api/teachers/activate' : (role === 'Student' ? '/api/students/activate' : null);
+          if (endpoint) {
+            await fetch(endpoint, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${session.access_token}` }
+            });
+          }
         } catch { }
       }
     });
