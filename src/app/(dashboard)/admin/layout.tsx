@@ -220,7 +220,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {/* Top progress bar during route change */}
                 <div className={`fixed top-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 transition-[opacity,width] duration-300 ${navLoading ? 'opacity-100 w-full' : 'opacity-0 w-0'}`} />
                 <div className="sticky top-0 z-10 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-black/30 border-b border-black/10 dark:border-white/10">
-                    <div className="flex items-center justify-end px-4 md:px-6 py-3">
+                    <div className="flex items-center justify-between px-4 md:px-6 py-3">
+                        <h1 className="text-sm md:text-base font-semibold">Namasta Admin</h1>
                         {/* Theme Toggle Button */}
                         <Button
                             onClick={toggleTheme}

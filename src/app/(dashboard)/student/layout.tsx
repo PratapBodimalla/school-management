@@ -7,12 +7,12 @@ import { supabase } from "@/lib/supabaseClient";
 import { useRoleGuard } from "@/lib/roleGuard";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { PanelLeftClose, PanelLeftOpen, LayoutDashboard, CalendarClock, Users, CheckSquare, Sun, Moon, LogOut, Loader2 } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen, LayoutDashboard, CalendarClock, Users, Sun, Moon, LogOut, Loader2 } from "lucide-react";
 import type { SVGProps, ComponentType } from "react";
 import type { User as SupaUser } from "@supabase/supabase-js";
 
-export default function TeacherLayout({ children }: { children: React.ReactNode }) {
-    const { loading, isAuthorized } = useRoleGuard("Teacher");
+export default function StudentLayout({ children }: { children: React.ReactNode }) {
+    const { loading, isAuthorized } = useRoleGuard("Student");
     const router = useRouter();
     const pathname = usePathname();
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -20,20 +20,13 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
     const [theme, setTheme] = useState<'light' | 'dark'>('light');
     const [navLoading, setNavLoading] = useState(false);
     const [user, setUser] = useState<SupaUser | null>(null);
-    const [displayName, setDisplayName] = useState<string>('Teacher');
+    const [displayName, setDisplayName] = useState<string>('Student');
 
     useEffect(() => { if (typeof window !== "undefined" && window.innerWidth >= 768) setSidebarOpen(true); }, []);
-    useEffect(() => {
-        const saved = localStorage.getItem('teacherSidebarCollapsed');
-        if (saved) setSidebarCollapsed(JSON.parse(saved));
-    }, []);
-    useEffect(() => { localStorage.setItem('teacherSidebarCollapsed', JSON.stringify(sidebarCollapsed)); }, [sidebarCollapsed]);
+    useEffect(() => { const saved = localStorage.getItem('studentSidebarCollapsed'); if (saved) setSidebarCollapsed(JSON.parse(saved)); }, []);
+    useEffect(() => { localStorage.setItem('studentSidebarCollapsed', JSON.stringify(sidebarCollapsed)); }, [sidebarCollapsed]);
 
-    useEffect(() => {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark' || savedTheme === 'light') setTheme(savedTheme as 'light' | 'dark');
-        else setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    }, []);
+    useEffect(() => { const savedTheme = localStorage.getItem('theme'); setTheme(savedTheme === 'dark' ? 'dark' : 'light'); }, []);
     useEffect(() => { theme === 'dark' ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark'); }, [theme]);
     useEffect(() => { setNavLoading(true); const t = setTimeout(() => setNavLoading(false), 400); return () => clearTimeout(t); }, [pathname]);
 
@@ -42,21 +35,20 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
         (async () => {
             try {
                 const { data: { user } } = await supabase.auth.getUser();
-                if (user?.id) {
-                    const { data: teacherRow } = await supabase
-                        .from('teachers')
+                if (user?.email) {
+                    const { data: studentRow } = await supabase
+                        .from('students')
                         .select('first_name,last_name')
-                        .eq('user_id', user.id)
+                        .eq('email', user.email)
                         .maybeSingle();
-                    const nameFromTeacher = teacherRow ? `${teacherRow.first_name ?? ''} ${teacherRow.last_name ?? ''}`.trim() : '';
+                    const nameFromStudent = studentRow ? `${studentRow.first_name ?? ''} ${studentRow.last_name ?? ''}`.trim() : '';
                     const nameFromMeta = (user.user_metadata?.first_name && user.user_metadata?.last_name)
                         ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
                         : (user.user_metadata?.full_name as string | undefined);
-                    const fallback = user.email || 'Teacher';
-                    const finalName = nameFromTeacher || nameFromMeta || fallback;
+                    const finalName = nameFromStudent || nameFromMeta || (user.email as string);
                     setDisplayName(String(finalName));
                 }
-            } catch { setDisplayName('Teacher'); }
+            } catch { setDisplayName('Student'); }
         })();
     }, []);
 
@@ -86,10 +78,9 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
                 </div>
 
                 <nav className="space-y-1 text-sm flex-1">
-                    <SidebarLink href="/teacher/overview" label="Overview" icon={LayoutDashboard} collapsed={sidebarCollapsed} />
-                    <SidebarLink href="/teacher/timetable" label="Timetable" icon={CalendarClock} collapsed={sidebarCollapsed} />
-                    <SidebarLink href="/teacher/attendance" label="Attendance" icon={CheckSquare} collapsed={sidebarCollapsed} />
-                    <SidebarLink href="/teacher/students" label="Students" icon={Users} collapsed={sidebarCollapsed} />
+                    <SidebarLink href="/student/overview" label="Overview" icon={LayoutDashboard} collapsed={sidebarCollapsed} />
+                    <SidebarLink href="/student/timetable" label="Timetable" icon={CalendarClock} collapsed={sidebarCollapsed} />
+                    <SidebarLink href="/student/peers" label="Peers" icon={Users} collapsed={sidebarCollapsed} />
                 </nav>
 
                 {sidebarCollapsed && (
@@ -100,7 +91,6 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
                     </div>
                 )}
 
-                {/* User Profile Section */}
                 {user && (
                     <div className="border-t border-black/10 dark:border-white/10 pt-4 mt-4">
                         <DropdownMenu>
@@ -108,11 +98,11 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
                                 <Button variant="ghost" className="w-full justify-start h-auto p-3">
                                     <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-3'}`}>
                                         <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
-                                            {user.email?.charAt(0).toUpperCase() || 'T'}
+                                            {user.email?.charAt(0).toUpperCase() || 'S'}
                                         </div>
                                         <div className={`flex-1 min-w-0 transition-all duration-200 ${sidebarCollapsed ? 'opacity-0 pointer-events-none w-0' : 'opacity-100 w-auto'}`}>
-                                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{user.email || 'Teacher'}</p>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400">Teacher</p>
+                                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{user.email || 'Student'}</p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400">Student</p>
                                         </div>
                                     </div>
                                 </Button>
@@ -131,7 +121,7 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
                 <div className={`fixed top-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 transition-[opacity,width] duration-300 ${navLoading ? 'opacity-100 w-full' : 'opacity-0 w-0'}`} />
                 <div className="sticky top-0 z-10 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-black/30 border-b border-black/10 dark:border-white/10">
                     <div className="flex items-center justify-between px-4 md:px-6 py-3">
-                        <h1 className="text-sm md:text-base font-semibold">Namasta {displayName}</h1>
+                        <h1 className="text-sm md:text-base font-semibold">Hi {displayName}</h1>
                         <div className="flex items-center gap-2">
                             <Button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')} variant="ghost" size="icon" className="h-8 w-8" title="Toggle theme">
                                 {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}

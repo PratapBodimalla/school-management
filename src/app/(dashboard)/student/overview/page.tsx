@@ -3,35 +3,31 @@
 import { useEffect, useState } from "react";
 import { useRoleGuard } from "@/lib/roleGuard";
 import { authenticatedFetch } from "@/lib/apiClient";
-import { supabase } from "@/lib/supabaseClient";
 
-interface ScheduleItem { period_no: number; start_time: string; end_time: string; class_id?: string; section_id?: string; classes?: { name: string }; sections?: { name: string } }
+interface ScheduleItem { period_no: number; start_time: string; end_time: string; classes?: { name: string }; sections?: { name: string } }
 
-export default function TeacherOverviewPage() {
-    const { loading } = useRoleGuard("Teacher");
-    const [classesCount, setClassesCount] = useState(0);
-    const [pendingCount, setPendingCount] = useState(0);
+export default function StudentOverviewPage() {
+    const { loading } = useRoleGuard("Student");
+    const [todayCount, setTodayCount] = useState(0);
     const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
+    const [presentCount, setPresentCount] = useState(0);
+    const [absentCount, setAbsentCount] = useState(0);
 
     useEffect(() => { if (!loading) load(); }, [loading]);
-
     async function load() {
         try {
-            const res = await authenticatedFetch('/api/teacher/overview/today');
+            const res = await authenticatedFetch('/api/student/overview/today');
             const data = await res.json();
             if (res.ok) {
-                setClassesCount(data?.classesCount ?? 0);
-                setPendingCount(data?.pendingCount ?? 0);
+                setTodayCount(data?.classesCount ?? 0);
                 setSchedule(Array.isArray(data?.schedule) ? data.schedule : []);
+                setPresentCount(data?.attendance?.present ?? 0);
+                setAbsentCount(data?.attendance?.absent ?? 0);
             } else {
-                setClassesCount(0); setPendingCount(0); setSchedule([]);
+                setTodayCount(0); setSchedule([]); setPresentCount(0); setAbsentCount(0);
             }
-        } catch {
-            setClassesCount(0); setPendingCount(0); setSchedule([]);
-        }
+        } catch { setTodayCount(0); setSchedule([]); setPresentCount(0); setAbsentCount(0); }
     }
-
-    // Title is shown in the header (layout). No title on this page.
 
     if (loading) return <div className="p-6">Loading…</div>;
 
@@ -39,12 +35,12 @@ export default function TeacherOverviewPage() {
     return (
         <div className="p-4 md:p-6 space-y-6">
             <p className="text-sm text-muted-foreground">Today: {todayLabel}</p>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
-                <InfoCard title="Today's Classes" value={String(classesCount)} subtitle="Scheduled periods" />
-                <InfoCard title="Pending Attendance" value={String(pendingCount)} subtitle="Periods to submit" />
+            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3">
+                <InfoCard title="Today's Classes" value={String(todayCount)} subtitle="Scheduled periods" />
+                <InfoCard title="Days Present" value={String(presentCount)} subtitle="Current month" />
+                <InfoCard title="Days Absent" value={String(absentCount)} subtitle="Current month" />
             </div>
-
-            <section id="schedule" className="grid gap-6">
+            <section className="grid gap-6">
                 <Panel title="Today's Schedule">
                     <ScheduleTable rows={schedule} />
                 </Panel>
@@ -87,7 +83,9 @@ function ScheduleTable({ rows }: { rows: ScheduleItem[] }) {
                     </tr>
                 </thead>
                 <tbody>
-                    {rows.map((r, i) => (
+                    {rows.length === 0 ? (
+                        <tr><td className="py-2 pr-3" colSpan={4}>No periods.</td></tr>
+                    ) : rows.map((r, i) => (
                         <tr key={i} className="border-t border-black/10 dark:border-white/10">
                             <td className="py-2 pr-3">{r.period_no}</td>
                             <td className="py-2 pr-3 whitespace-nowrap">{r.start_time} – {r.end_time}</td>
@@ -98,24 +96,6 @@ function ScheduleTable({ rows }: { rows: ScheduleItem[] }) {
                 </tbody>
             </table>
         </div>
-    );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-    return (
-        <label className="grid gap-1 text-sm">
-            <span className="text-black/80 dark:text-white/80">{label}</span>
-            {children}
-        </label>
-    );
-}
-
-function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
-    return (
-        <input
-            {...props}
-            className={`rounded-md border border-black/10 dark:border-white/10 bg-transparent px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/30 dark:focus:ring-white/30 ${props.className ?? ""}`}
-        />
     );
 }
 
