@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useRoleGuard } from "@/lib/roleGuard";
 import {
@@ -13,19 +13,15 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { User as UserIcon, Settings, HelpCircle, LogOut, PanelLeftClose, PanelLeftOpen, LayoutDashboard, GraduationCap, Users, BookOpen, Calendar, Clock, Sun, Moon, Loader2 } from "lucide-react";
-import type { User as SupaUser } from "@supabase/supabase-js";
-import type { SVGProps, ComponentType, ReactNode } from "react";
+import { User, Settings, HelpCircle, LogOut, PanelLeftClose, PanelLeftOpen, LayoutDashboard, GraduationCap, Users, BookOpen, Calendar, Clock, Sun, Moon } from "lucide-react";
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const { loading, isAuthorized } = useRoleGuard("Admin");
     const router = useRouter();
-    const pathname = usePathname();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-    const [user, setUser] = useState<SupaUser | null>(null);
+    const [user, setUser] = useState<any>(null);
     const [theme, setTheme] = useState<'light' | 'dark'>('light');
-    const [navLoading, setNavLoading] = useState(false);
 
 
     useEffect(() => {
@@ -73,14 +69,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         getUser();
     }, []);
 
-    // Lightweight navigation loader when pathname changes
-    useEffect(() => {
-        setNavLoading(true);
-        const t = setTimeout(() => setNavLoading(false), 500);
-        return () => clearTimeout(t);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pathname]);
-
     async function handleSignOut() {
         await supabase.auth.signOut();
         router.replace("/");
@@ -124,7 +112,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <div className="min-h-screen grid" style={{ gridTemplateColumns: `${sidebarOpen ? (sidebarCollapsed ? "80px" : "260px") : "0px"} 1fr` }}>
             <aside id="sidebar" className={`border-r border-black/10 dark:border-white/10 ${sidebarCollapsed ? "p-2" : "p-4"} overflow-hidden ${sidebarOpen ? "opacity-100" : "opacity-0"} flex flex-col transition-all duration-200 ease-in-out`} aria-hidden={!sidebarOpen}>
                 <div className={`flex items-center ${sidebarCollapsed ? 'justify-center mb-4' : 'justify-between mb-6'}`}>
-                    <Link href="/" className="block">
+                    <Link href="/dashboard/admin/overview" className="block">
                         <img
                             src="/sloka-international-school-logo.png"
                             alt="Sloka International School"
@@ -150,12 +138,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 </div>
 
                 <nav className="space-y-1 text-sm flex-1">
-                    <SidebarLink href="/admin/overview" label="Overview" icon={LayoutDashboard} collapsed={sidebarCollapsed} />
-                    <SidebarLink href="/admin/classes" label="Classes" icon={GraduationCap} collapsed={sidebarCollapsed} />
-                    <SidebarLink href="/admin/students" label="Students" icon={Users} collapsed={sidebarCollapsed} />
-                    <SidebarLink href="/admin/teachers" label="Teachers" icon={BookOpen} collapsed={sidebarCollapsed} />
-                    <SidebarLink href="/admin/holiday" label="Holidays" icon={Calendar} collapsed={sidebarCollapsed} />
-                    <SidebarLink href="/admin/timetable" label="Timetable" icon={Clock} collapsed={sidebarCollapsed} />
+                    <SidebarLink href="/dashboard/admin/overview" label="Overview" icon={LayoutDashboard} collapsed={sidebarCollapsed} />
+                    <SidebarLink href="/dashboard/admin/classes" label="Classes" icon={GraduationCap} collapsed={sidebarCollapsed} />
+                    <SidebarLink href="/dashboard/admin/students" label="Students" icon={Users} collapsed={sidebarCollapsed} />
+                    <SidebarLink href="/dashboard/admin/teachers" label="Teachers" icon={BookOpen} collapsed={sidebarCollapsed} />
+                    <SidebarLink href="/dashboard/admin/holidays" label="Holidays" icon={Calendar} collapsed={sidebarCollapsed} />
+                    <SidebarLink href="/dashboard/admin/timetable" label="Timetable" icon={Clock} collapsed={sidebarCollapsed} />
                 </nav>
 
                 {/* Expand Button for Collapsed State */}
@@ -203,6 +191,19 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                                 side="top"
                                 sideOffset={8}
                             >
+                                <DropdownMenuItem className="cursor-pointer">
+                                    <User className="mr-2 h-4 w-4" />
+                                    Profile
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="cursor-pointer">
+                                    <Settings className="mr-2 h-4 w-4" />
+                                    Settings
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="cursor-pointer">
+                                    <HelpCircle className="mr-2 h-4 w-4" />
+                                    Help
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                     className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950"
                                     onClick={handleSignOut}
@@ -217,11 +218,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             </aside>
 
             <main className="min-h-screen">
-                {/* Top progress bar during route change */}
-                <div className={`fixed top-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 transition-[opacity,width] duration-300 ${navLoading ? 'opacity-100 w-full' : 'opacity-0 w-0'}`} />
                 <div className="sticky top-0 z-10 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-black/30 border-b border-black/10 dark:border-white/10">
-                    <div className="flex items-center justify-between px-4 md:px-6 py-3">
-                        <h1 className="text-sm md:text-base font-semibold">Namasta Admin</h1>
+                    <div className="flex items-center justify-end px-4 md:px-6 py-3">
                         {/* Theme Toggle Button */}
                         <Button
                             onClick={toggleTheme}
@@ -241,9 +239,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 </div>
 
                 <div className="p-4 md:p-6">
-                    <Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin" /></div>}>
-                        {children}
-                    </Suspense>
+                    {children}
                 </div>
             </main>
 
@@ -252,19 +248,19 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     );
 }
 
-function SidebarLink({ href, label, icon: Icon, collapsed }: { href: string; label: string; icon: ComponentType<SVGProps<SVGSVGElement>>; collapsed: boolean }) {
-    const pathname = usePathname();
-    const active = pathname.startsWith(href);
+function SidebarLink({ href, label, icon: Icon, collapsed }: { href: string; label: string; icon: any; collapsed: boolean }) {
     return (
-        <Link href={href} className="block" aria-current={active ? 'page' : undefined}>
+        <Link href={href} className="block">
             <Button
-                variant={active ? 'secondary' : 'ghost'}
-                className={`w-full justify-start h-auto p-3 cursor-pointer hover:bg-muted/50 ${collapsed ? 'text-center' : 'text-left'} ${active ? 'border-l-2 border-l-blue-600 dark:border-l-blue-400' : ''}`}
+                variant="ghost"
+                className={`w-full justify-start h-auto p-3 ${collapsed ? 'text-center' : 'text-left'
+                    }`}
                 title={collapsed ? label : undefined}
             >
                 <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
-                    <Icon className={`h-5 w-5 flex-shrink-0 ${active ? 'text-blue-600 dark:text-blue-400' : ''}`} />
-                    <span className={`transition-all duration-200 ${collapsed ? 'opacity-0 pointer-events-none w-0' : 'opacity-100 w-auto'} ${active ? 'font-semibold' : ''}`}>
+                    <Icon className="h-5 w-5 flex-shrink-0" />
+                    <span className={`transition-all duration-200 ${collapsed ? 'opacity-0 pointer-events-none w-0' : 'opacity-100 w-auto'
+                        }`}>
                         {label}
                     </span>
                 </div>
