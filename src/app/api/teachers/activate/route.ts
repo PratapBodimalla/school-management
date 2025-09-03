@@ -23,7 +23,9 @@ export async function POST(req: NextRequest) {
             .update({
                 status: 'active',
                 onboarding_status: 'completed',
-                updated_at: new Date().toISOString()
+                updated_at: new Date().toISOString(),
+                // Link auth user to teacher row for future lookups
+                user_id: user.id
             })
             .eq('email', user.email)
             .eq('school_id', FIXED_SCHOOL_ID)
