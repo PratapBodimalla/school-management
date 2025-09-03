@@ -15,7 +15,7 @@ export default function StudentPeersPage() {
     const [q, setQ] = useState("");
     const [rows, setRows] = useState<StudentRow[]>([]);
     const [classes, setClasses] = useState<{ id: string; name: string }[]>([]);
-    const [sections, setSections] = useState<{ id: string; name: string }[]>([]);
+    const [sections, setSections] = useState<{ id: string; name: string; class_id: string }[]>([]);
     const [classId, setClassId] = useState(ALL);
     const [sectionId, setSectionId] = useState(ALL);
     const [page, setPage] = useState(1);
