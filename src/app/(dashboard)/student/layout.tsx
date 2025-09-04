@@ -21,13 +21,29 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     const [navLoading, setNavLoading] = useState(false);
     const [user, setUser] = useState<SupaUser | null>(null);
     const [displayName, setDisplayName] = useState<string>('Student');
+    const [isDesktop, setIsDesktop] = useState(false);
 
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const check = () => setIsDesktop(window.innerWidth >= 768);
+            check();
+            window.addEventListener('resize', check);
+            return () => window.removeEventListener('resize', check);
+        }
+    }, []);
     useEffect(() => { if (typeof window !== "undefined" && window.innerWidth >= 768) setSidebarOpen(true); }, []);
     useEffect(() => { const saved = localStorage.getItem('studentSidebarCollapsed'); if (saved) setSidebarCollapsed(JSON.parse(saved)); }, []);
     useEffect(() => { localStorage.setItem('studentSidebarCollapsed', JSON.stringify(sidebarCollapsed)); }, [sidebarCollapsed]);
 
     useEffect(() => { const savedTheme = localStorage.getItem('theme'); setTheme(savedTheme === 'dark' ? 'dark' : 'light'); }, []);
     useEffect(() => { theme === 'dark' ? document.documentElement.classList.add('dark') : document.documentElement.classList.remove('dark'); }, [theme]);
+    useEffect(() => {
+        if (!isDesktop) {
+            const prev = document.body.style.overflow;
+            document.body.style.overflow = sidebarOpen ? 'hidden' : prev || '';
+            return () => { document.body.style.overflow = prev; };
+        }
+    }, [sidebarOpen, isDesktop]);
     useEffect(() => { setNavLoading(true); const t = setTimeout(() => setNavLoading(false), 400); return () => clearTimeout(t); }, [pathname]);
 
     useEffect(() => { (async () => { const { data: { user } } = await supabase.auth.getUser(); if (user) setUser(user); })(); }, []);
@@ -64,8 +80,15 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     if (!isAuthorized) return null;
 
     return (
-        <div className="min-h-screen grid" style={{ gridTemplateColumns: `${sidebarOpen ? (sidebarCollapsed ? '80px' : '240px') : '0px'} 1fr` }}>
-            <aside id="sidebar" className={`border-r border-black/10 dark:border-white/10 ${sidebarCollapsed ? 'p-2' : 'p-4'} overflow-hidden ${sidebarOpen ? 'opacity-100' : 'opacity-0'} flex flex-col transition-all duration-200 ease-in-out`} aria-hidden={!sidebarOpen}>
+        <div className="h-screen grid overflow-hidden" style={{ gridTemplateColumns: isDesktop ? `${sidebarOpen ? (sidebarCollapsed ? '80px' : '240px') : '0px'} 1fr` : '0px 1fr' }}>
+            <aside id="sidebar" className={`
+                border-r border-black/10 dark:border-white/10 ${sidebarCollapsed ? 'p-2' : 'p-4'}
+                overflow-y-auto overflow-x-hidden flex flex-col transition-all duration-200 ease-in-out
+                bg-white dark:bg-black
+                fixed inset-y-0 left-0 z-30 w-[240px]
+                ${sidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}
+                md:static md:z-auto md:w-auto md:translate-x-0 md:opacity-100
+            `} aria-hidden={!sidebarOpen && !isDesktop}>
                 <div className={`flex items-center ${sidebarCollapsed ? 'justify-center mb-4' : 'justify-between mb-6'}`}>
                     <Link href="/" className="block">
                         <img src="/sloka-international-school-logo.png" alt="Sloka" className={`${sidebarCollapsed ? 'w-8 h-8' : 'w-1/2 h-auto'} hover:opacity-80 transition-opacity`} />
@@ -117,11 +140,19 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                 )}
             </aside>
 
-            <main className="min-h-screen">
+            {/* Mobile overlay backdrop */}
+            <div className={`${sidebarOpen ? 'opacity-100' : 'pointer-events-none opacity-0'} fixed inset-0 z-20 bg-black/40 md:hidden transition-opacity`} onClick={() => setSidebarOpen(false)} aria-hidden />
+
+            <main className="h-screen overflow-y-auto">
                 <div className={`fixed top-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 transition-[opacity,width] duration-300 ${navLoading ? 'opacity-100 w-full' : 'opacity-0 w-0'}`} />
                 <div className="sticky top-0 z-10 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-black/30 border-b border-black/10 dark:border-white/10">
                     <div className="flex items-center justify-between px-4 md:px-6 py-3">
-                        <h1 className="text-sm md:text-base font-semibold">Hi {displayName}</h1>
+                        <div className="flex items-center gap-2">
+                            <Button onClick={() => setSidebarOpen(v => !v)} variant="ghost" size="icon" className="h-8 w-8 md:hidden" title="Menu">
+                                <PanelLeftOpen className="h-5 w-5" />
+                            </Button>
+                            <h1 className="text-sm md:text-base font-semibold">Hi {displayName}</h1>
+                        </div>
                         <div className="flex items-center gap-2">
                             <Button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')} variant="ghost" size="icon" className="h-8 w-8" title="Toggle theme">
                                 {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
