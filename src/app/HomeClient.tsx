@@ -196,11 +196,30 @@ export default function HomeClient() {
 
     return (
         <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
-            <section className="hidden md:flex flex-col items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-12">
-                <h1 className="text-4xl font-bold tracking-tight text-center">Sloka School Management</h1>
-                <p className="mt-4 text-white/90 text-center max-w-md">
-                    Manage classes, teachers, students, timetables, and fees in one platform.
-                </p>
+            <section className="hidden md:flex flex-col items-center justify-center bg-blue-800 text-white p-16 relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+
+                <div className="relative z-10 flex flex-col items-center">
+                    <div className="relative">
+                        <div className="absolute -inset-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full blur opacity-75 animate-pulse"></div>
+                        <img src="/main-logo.png" alt="Teja Vidyalaya Logo" className="relative w-44 h-44 rounded-full border-4 border-white/20 shadow-2xl transform hover:scale-105 transition-transform duration-300" />
+                    </div>
+
+                    <h1 className="mt-8 text-7xl font-black tracking-tighter text-center bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 animate-gradient-x">
+                        Teja Vidyalaya
+                    </h1>
+
+                    <p className="text-3xl font-bold tracking-tight text-center mt-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-white/90 to-white/80">
+                        Online Attendance Management System
+                    </p>
+
+                    <div className="mt-8 p-6 backdrop-blur-sm bg-white/10 rounded-2xl border border-white/20 shadow-xl hover:bg-white/20 transition-colors duration-300">
+                        <p className="text-lg text-white/90 text-center max-w-md leading-relaxed">
+                            Manage classes, teachers, students, and attendance in one powerful, integrated platform.
+                        </p>
+                    </div>
+                </div>
             </section>
             <section className="flex items-center justify-center p-8">
                 <div className="w-full max-w-md">

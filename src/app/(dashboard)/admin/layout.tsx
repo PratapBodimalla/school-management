@@ -26,13 +26,18 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<SupaUser | null>(null);
     const [theme, setTheme] = useState<'light' | 'dark'>('light');
     const [navLoading, setNavLoading] = useState(false);
+    const [isDesktop, setIsDesktop] = useState(false);
 
 
     useEffect(() => {
-        if (typeof window !== "undefined" && window.innerWidth >= 768) {
-            setSidebarOpen(true);
+        if (typeof window !== "undefined") {
+            const check = () => setIsDesktop(window.innerWidth >= 768);
+            check();
+            window.addEventListener('resize', check);
+            return () => window.removeEventListener('resize', check);
         }
     }, []);
+    useEffect(() => { if (typeof window !== "undefined" && window.innerWidth >= 768) setSidebarOpen(true); }, []);
 
     useEffect(() => {
         // Load sidebar collapsed state from localStorage
@@ -62,6 +67,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             document.documentElement.classList.remove('dark');
         }
     }, [theme]);
+
+    useEffect(() => {
+        if (!isDesktop) {
+            const prev = document.body.style.overflow;
+            document.body.style.overflow = sidebarOpen ? 'hidden' : prev || '';
+            return () => { document.body.style.overflow = prev; };
+        }
+    }, [sidebarOpen, isDesktop]);
 
     useEffect(() => {
         async function getUser() {
@@ -121,8 +134,15 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     }
 
     return (
-        <div className="min-h-screen grid" style={{ gridTemplateColumns: `${sidebarOpen ? (sidebarCollapsed ? "80px" : "260px") : "0px"} 1fr` }}>
-            <aside id="sidebar" className={`border-r border-black/10 dark:border-white/10 ${sidebarCollapsed ? "p-2" : "p-4"} overflow-hidden ${sidebarOpen ? "opacity-100" : "opacity-0"} flex flex-col transition-all duration-200 ease-in-out`} aria-hidden={!sidebarOpen}>
+        <div className="h-screen grid overflow-hidden" style={{ gridTemplateColumns: isDesktop ? `${sidebarOpen ? (sidebarCollapsed ? '80px' : '260px') : '0px'} 1fr` : '0px 1fr' }}>
+            <aside id="sidebar" className={`
+                border-r border-black/10 dark:border-white/10 ${sidebarCollapsed ? 'p-2' : 'p-4'}
+                overflow-y-auto overflow-x-hidden flex flex-col transition-all duration-200 ease-in-out
+                bg-white dark:bg-black
+                fixed inset-y-0 left-0 z-30 w-[260px]
+                ${sidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}
+                md:static md:z-auto md:w-auto md:translate-x-0 md:opacity-100
+            `} aria-hidden={!sidebarOpen && !isDesktop}>
                 <div className={`flex items-center ${sidebarCollapsed ? 'justify-center mb-4' : 'justify-between mb-6'}`}>
                     <Link href="/" className="block">
                         <img
@@ -216,12 +236,20 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 )}
             </aside>
 
-            <main className="min-h-screen">
+            {/* Mobile overlay backdrop */}
+            <div className={`${sidebarOpen ? 'opacity-100' : 'pointer-events-none opacity-0'} fixed inset-0 z-20 bg-black/40 md:hidden transition-opacity`} onClick={() => setSidebarOpen(false)} aria-hidden />
+
+            <main className="h-screen overflow-y-auto">
                 {/* Top progress bar during route change */}
                 <div className={`fixed top-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 transition-[opacity,width] duration-300 ${navLoading ? 'opacity-100 w-full' : 'opacity-0 w-0'}`} />
                 <div className="sticky top-0 z-10 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-black/30 border-b border-black/10 dark:border-white/10">
                     <div className="flex items-center justify-between px-4 md:px-6 py-3">
-                        <h1 className="text-sm md:text-base font-semibold">Namasta Admin</h1>
+                        <div className="flex items-center gap-2">
+                            <Button onClick={() => setSidebarOpen(v => !v)} variant="ghost" size="icon" className="h-8 w-8 md:hidden" title="Menu">
+                                <PanelLeftOpen className="h-5 w-5" />
+                            </Button>
+                            <h1 className="text-sm md:text-base font-semibold">Namasta Admin</h1>
+                        </div>
                         {/* Theme Toggle Button */}
                         <Button
                             onClick={toggleTheme}
